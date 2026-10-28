@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carrouselproef</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<style>
+/* Layout: protocolblad — rijbak links (sticky), proefschema met puntenkolom rechts */
+:root{
+  --bg:#f2f4ef; --surface:#ffffff; --ink:#18241d; --muted:#5b6a60; --line:#d5dcd3;
+  --accent:#1f5a3d; --accent-ink:#ffffff;
+  --sand:#e3cfa6; --sand-edge:#cdb382; --fence:#ffffff; --board:#18241d; --board-ink:#ffffff;
+  --file1:#26467f; --file2:#9a2840; --hilite:#e7efe6;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Literata",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#17201b; --ink:#e3eae4; --muted:#9aa89f; --line:#2c3a32;
+  --accent:#6fbf92; --accent-ink:#0f1512;
+  --sand:#a68e62; --sand-edge:#7d6942; --fence:#e9ede9; --board:#e3eae4; --board-ink:#0f1512;
+  --file1:#9db8ff; --file2:#ff9aae; --hilite:#1f2d25; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#17201b; --ink:#e3eae4; --muted:#9aa89f; --line:#2c3a32;
+  --accent:#6fbf92; --accent-ink:#0f1512;
+  --sand:#a68e62; --sand-edge:#7d6942; --fence:#e9ede9; --board:#e3eae4; --board-ink:#0f1512;
+  --file1:#9db8ff; --file2:#ff9aae; --hilite:#1f2d25; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,5vw,3rem);line-height:1;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:.95rem}
+.label{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;color:var(--muted)}
+.setup{display:flex;flex-wrap:wrap;gap:20px;align-items:end}
+.stepper{display:flex;align-items:center;gap:0;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.stepper button{width:40px;height:42px;border:0;background:var(--surface);color:var(--ink);font-size:1.3rem;cursor:pointer}
+.stepper button:hover{background:var(--hilite)}
+.stepper output{min-width:54px;text-align:center;font-family:var(--display);font-weight:700;font-size:1.6rem;font-variant-numeric:tabular-nums;border-inline:1.5px solid var(--ink);line-height:42px;background:var(--surface)}
+.seg{display:flex;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);color:var(--ink);font-family:var(--display);font-weight:600;font-size:1.05rem;padding:0 14px;height:42px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.arenaCol{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}
+@media (max-width:860px){.arenaCol{position:static}}
+.arenaBox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+svg#arena{display:block;width:100%;max-width:380px;max-height:68vh;margin:0 auto}
+.now{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-top:8px}
+.now strong{font-family:var(--display);font-size:1.25rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.gait{font-family:var(--display);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;background:var(--hilite);color:var(--accent);white-space:nowrap}
+.bar{height:4px;background:var(--line);border-radius:4px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.btn{font-family:var(--display);font-weight:600;font-size:1rem;letter-spacing:.03em;height:40px;padding:0 14px;border-radius:6px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);min-width:110px}
+.btn:hover{filter:brightness(1.05)}
+.speed{margin-left:auto}
+.speed button{height:40px;padding:0 10px;font-size:.95rem}
+.riders{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.rider{display:flex;align-items:center;gap:6px}
+.dot{flex:none;width:24px;height:24px;border-radius:50%;color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:.9rem}
+.rider input{min-width:0;flex:1;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font-family:var(--body);font-size:.9rem;padding:3px 2px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:.88rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--c)}
+.note{margin-top:12px;font-size:.88rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
+.tableWrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.07em;font-size:.78rem;color:var(--muted);background:var(--bg)}
+td.nr{font-family:var(--display);font-weight:700;font-size:1.3rem;font-variant-numeric:tabular-nums;width:36px}
+td.letters{font-family:var(--display);font-weight:700;font-size:1.05rem;letter-spacing:.04em;white-space:nowrap;width:90px}
+td.fig b{display:block;font-weight:600}
+td.fig .judge{display:block;color:var(--muted);font-size:.85rem;margin-top:3px}
+tr.f{cursor:pointer}
+tr.f:hover td{background:var(--hilite)}
+tr.f.active td{background:var(--hilite)}
+tr.f.active td.nr{color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+td.pts{width:84px}
+td.pts input{width:64px;font-family:var(--display);font-size:1.1rem;font-weight:600;font-variant-numeric:tabular-nums;border:1.5px solid var(--line);border-radius:5px;padding:4px 6px;background:var(--bg);color:var(--ink)}
+td.coef{font-family:var(--display);font-variant-numeric:tabular-nums;color:var(--muted);width:44px}
+tr.section td{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.85rem;background:var(--bg);color:var(--ink)}
+tfoot td{font-family:var(--display);font-weight:700;font-size:1.15rem;font-variant-numeric:tabular-nums;border-bottom:0}
+.total{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.pct{font-size:2rem;color:var(--accent)}
+h2{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:1.4rem;letter-spacing:.02em;margin:0 0 10px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:12px;font-size:.9rem;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Carrouselproef</h1>
+      <p class="sub">Proefschema met animatie per oefening. Kies eerst het aantal ruiters en de bak.</p>
+    </div>
+    <div class="setup">
+      <div>
+        <div class="label" id="lblN">Deelnemers</div>
+        <div class="stepper" role="group" aria-labelledby="lblN">
+          <button id="minus" aria-label="Minder ruiters">−</button>
+          <output id="nOut">6</output>
+          <button id="plus" aria-label="Meer ruiters">+</button>
+        </div>
+      </div>
+      <div>
+        <div class="label" id="lblBak">Rijbak</div>
+        <div class="seg" role="group" aria-labelledby="lblBak">
+          <button id="bak40" aria-pressed="false">20 × 40</button>
+          <button id="bak60" aria-pressed="false">20 × 60</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="arenaCol">
+      <div class="arenaBox">
+        <svg id="arena" role="img" aria-label="Rijbak met ruiters"></svg>
+        <div class="now"><strong id="nowName">1 · Binnenkomen</strong><span class="gait" id="nowGait">draf</span></div>
+        <div class="bar"><i id="barFill"></i></div>
+        <div class="controls">
+          <button class="btn" id="prev" aria-label="Vorige oefening">◀</button>
+          <button class="btn primary" id="play">▶ Afspelen</button>
+          <button class="btn" id="next" aria-label="Volgende oefening">▶</button>
+          <div class="seg speed" role="group" aria-label="Snelheid">
+            <button data-s="1" aria-pressed="false">1×</button>
+            <button data-s="2" aria-pressed="true">2×</button>
+            <button data-s="4" aria-pressed="false">4×</button>
+          </div>
+        </div>
+        <label class="label" style="display:flex;gap:6px;align-items:center;margin-top:10px;cursor:pointer"><input type="checkbox" id="chain" checked> Hele proef achter elkaar</label>
+        <div class="legend">
+          <span style="--c:var(--file1)">Rij 1 (oneven nummers)</span>
+          <span style="--c:var(--file2)">Rij 2 (even nummers)</span>
+        </div>
+        <div class="riders" id="riders"></div>
+        <p class="note" id="note"></p>
+      </div>
+    </div>
+
+    <div>
+      <h2>Protocol</h2>
+      <div class="meta" id="meta"></div>
+      <div class="tableWrap">
+        <table>
+          <thead><tr><th>Nr</th><th>Letters</th><th>Oefening</th><th>Coëff.</th><th>Punten</th></tr></thead>
+          <tbody id="tbody"></tbody>
+          <tfoot><tr><td colspan="5"><div class="total"><span id="totTxt">Totaal 0 / 140</span><span class="pct" id="pct">–</span></div></td></tr></tfoot>
+        </table>
+      </div>
+      <div class="controls"><button class="btn" id="resetPts">Punten wissen</button></div>
+      <p class="note">Afstand tussen de ruiters: één paardlengte (ca. 3 m). Linker- en rechterrij zijn gezien in de rijrichting. Punten 0–10, halve punten toegestaan.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const W=20, LANE=0.75, GAP=3, XL=10-LANE;
+const SPEED={stap:1.6,draf:3.4,"verruimde draf":4.3,galop:5};
+const NS="http://www.w3.org/2000/svg";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let N=store.get("cp_n",6), L=store.get("cp_l",N>6?60:40), names=store.get("cp_names",{}), points=store.get("cp_pts",{});
+let simSpeed=2, figs=[], fi=0, t=0, playing=false, last=0, pauseLeft=0;
+
+/* ---------- path tools ---------- */
+function Path(x,y){this.p=[[x,y]];}
+Path.prototype.to=function(x,y){this.p.push([x,y]);return this};
+Path.prototype.arc=function(cx,cy,r,a0,a1){const n=Math.max(3,Math.ceil(Math.abs(a1-a0)/6));for(let i=1;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;this.p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)])}return this};
+function finish(pts){const c=[0];for(let i=1;i<pts.length;i++)c.push(c[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));return{pts,c,len:c[c.length-1]}}
+function mirror(tr){return finish(tr.pts.map(([x,y])=>[W-x,y]))}
+function posAt(tr,s){const p=tr.pts,c=tr.c;
+  if(s<=0){const dx=p[1][0]-p[0][0],dy=p[1][1]-p[0][1],l=Math.hypot(dx,dy)||1;return[p[0][0]+dx/l*s,p[0][1]+dy/l*s]}
+  if(s>=tr.len){const n=p.length-1,dx=p[n][0]-p[n-1][0],dy=p[n][1]-p[n-1][1],l=Math.hypot(dx,dy)||1,e=s-tr.len;return[p[n][0]+dx/l*e,p[n][1]+dy/l*e]}
+  let lo=0,hi=c.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(c[m]<=s)lo=m;else hi=m}
+  const f=(s-c[lo])/((c[hi]-c[lo])||1);return[p[lo][0]+(p[hi][0]-p[lo][0])*f,p[lo][1]+(p[hi][1]-p[lo][1])*f]}
+
+/* west-lane building blocks (east = mirror) */
+const splitC=p=>p.to(XL,L-4).arc(XL-3,L-4,3,0,90).to(4,L-1).arc(4,L-4,3,90,180);
+const mergeA=p=>p.to(1,4).arc(4,4,3,180,270).to(XL-3,1).arc(XL-3,4,3,270,360);
+const mergeC=p=>p.to(1,L-4).arc(4,L-4,3,180,90).to(XL-3,L-1).arc(XL-3,L-4,3,90,0);
+const splitA=p=>p.to(XL,4).arc(XL-3,4,3,0,-90).to(4,1).arc(4,4,3,-90,-180);
+
+function build(){
+  const X=L/2, G=L-6, ss=G-16, y1=ss-10;
+  const F=[];
+  F.push({name:"Binnenkomen",letters:"A – X",gait:"draf",hold:2.5,
+    text:"A binnenkomen in paren in arbeidsdraf op de middellijn. X halthouden, groeten.",
+    judge:"Rechte middellijn, paren naast elkaar, gelijktijdig halthouden.",
+    path:new Path(XL,-1).to(XL,X)});
+  F.push({name:"Uit elkaar bij C",letters:"X – C – A",gait:"draf",
+    text:"Voorwaarts in arbeidsdraf. C linkerrij linkerhand, rechterrij rechterhand. Hele baan. A in paren afwenden.",
+    judge:"Gelijktijdig afwenden, gelijk tempo, paren sluiten precies bij A.",
+    path:mergeA(splitC(new Path(XL,X))).to(XL,6)});
+  F.push({name:"Spiegelvolte",letters:"X – C – H/M",gait:"draf",
+    text:"X volte 8 m in spiegelbeeld: linkerrij linksom, rechterrij rechtsom, terug op de middellijn. C opnieuw uit elkaar.",
+    judge:"Ronde, even grote voltes; spiegelbeeld; afstanden blijven gelijk.",
+    path:splitC(new Path(XL,6).to(XL,X).arc(XL-4,X,4,0,360)).to(1,L-6)});
+  F.push({name:"Kruisen door de hele baan",letters:"H–X–F · M–X–K",gait:"verruimde draf",lag:true,
+    text:"Door de hele baan van hand veranderen in verruimde draf. Bij X ritsend kruisen. Voor A arbeidsdraf, A in paren afwenden.",
+    judge:"Rechte diagonalen, vloeiend ritsen bij X zonder tempoverlies.",
+    path:new Path(1,L-6).to(19,6).to(19,4).arc(16,4,3,0,-90).to(W-XL+3,1).arc(W-XL+3,4,3,-90,-180).to(W-XL,6)});
+  F.push({name:"Naar E en B",letters:"X – E/B – C",gait:"draf",swapped:true,
+    text:"X uit elkaar: linkerrij naar E, rechterrij naar B. E rechterhand, B linkerhand. C in paren afwenden.",
+    judge:"Gelijktijdig afwenden op X, rechte lijn naar de hoefslag, sluiten bij C.",
+    path:mergeC(new Path(XL,6).to(XL,X-3).arc(XL-3,X-3,3,0,90).to(4,X).arc(4,X+3,3,270,180)).to(XL,L-8)});
+  F.push({name:"Galop hele baan",letters:"A – K/F – C",gait:"galop",swapped:true,
+    text:"A uit elkaar: rechterrij rechterhand, linkerrij linkerhand. K en F galop aanspringen, hele baan. Voor C arbeidsdraf, C in paren afwenden.",
+    judge:"Gelijktijdig aanspringen, rustige galop, afstanden in de hoeken.",
+    path:mergeC(splitA(new Path(XL,L-8))).to(XL,L-8)});
+  F.push({name:"Slot en groet",letters:"X – D – G",gait:"draf",swapped:true,hold:3,
+    text:"Tussen X en A halve volte 8 m naar buiten en terug naar de middellijn, in spiegelbeeld. G halthouden, groeten. Bij A verlaten in stap aan lange teugel.",
+    judge:"Symmetrische halve voltes, recht op de middellijn, gelijktijdige halt.",
+    path:new Path(XL,L-8).to(XL,y1).arc(XL-4,y1,4,0,-180).to(XL,ss).to(XL,G)});
+  F.forEach(f=>{f.west=finish(f.path.p);f.east=mirror(f.west);f.dur=f.west.len/SPEED[f.gait]+(f.hold||0);
+    if(f.lag){const sX=Math.hypot(9,L/2-6);f.sX=sX}});
+  return F;
+}
+function smooth(a,b,x){const u=Math.min(1,Math.max(0,(x-a)/(b-a)));return u*u*(3-2*u)}
+function lagAt(f,s){if(!f.lag)return 0;const sX=f.sX;return 1.5*(smooth(1,sX-3,s)-smooth(sX+4,sX+12,s))}
+
+/* riders */
+const file1=()=>{const a=[];for(let i=0;i<N;i+=2)a.push(i);return a};
+const file2=()=>{const a=[];for(let i=1;i<N;i+=2)a.push(i);return a};
+
+function positions(f,tt){
+  const sLead=Math.min(tt*SPEED[f.gait],f.west.len);
+  const westFile=f.swapped?file2():file1(), eastFile=f.swapped?file1():file2();
+  const out=[];
+  const place=(file,tr,lagged)=>file.forEach((ri,k)=>{let s=sLead-k*GAP;if(lagged)s-=lagAt(f,s);
+    const p=posAt(tr,s),q=posAt(tr,s+0.4);out[ri]={x:p[0],y:p[1],h:Math.atan2(q[1]-p[1],q[0]-p[0])}});
+  place(westFile,f.west,false);place(eastFile,f.east,true);
+  return out;
+}
+
+/* ---------- SVG ---------- */
+const svg=document.getElementById("arena");
+let riderEls=[], pathEls=[];
+function el(n,a,parent){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(parent||svg).appendChild(e);return e}
+const Y=y=>L-y;
+function letterSpots(){const s=[["A",10,-1.6],["C",10,L+1.6],["X",10,L/2,1],["G",10,L-6,1],["D",10,6,1]];
+  const side=L===40?[["K","F",6],["E","B",20],["H","M",34]]:[["K","F",6],["V","P",18],["E","B",30],["S","R",42],["H","M",54]];
+  side.forEach(([l,r,y])=>{s.push([l,-1.6,y]);s.push([r,21.6,y])});return s}
+function drawArena(){
+  svg.innerHTML="";svg.setAttribute("viewBox",`-3.4 -3.4 26.8 ${L+7.4}`);
+  el("rect",{x:0,y:0,width:W,height:L,fill:"var(--sand)",stroke:"var(--fence)","stroke-width":0.35});
+  el("rect",{x:1,y:1,width:W-2,height:L-2,fill:"none",stroke:"var(--sand-edge)","stroke-width":0.12,rx:2.5});
+  el("line",{x1:10,y1:0.3,x2:10,y2:L-0.3,stroke:"var(--sand-edge)","stroke-width":0.1,"stroke-dasharray":"0.6 0.6"});
+  el("rect",{x:8.6,y:L-0.3,width:2.8,height:0.6,fill:"var(--bg)"});
+  letterSpots().forEach(([t,x,y,inner])=>{
+    if(inner){el("circle",{cx:x,cy:Y(y),r:0.22,fill:"var(--sand-edge)"});
+      const tx=el("text",{x:x+0.55,y:Y(y)+0.35,"font-size":1,"font-family":"Barlow Condensed, sans-serif","font-weight":700,fill:"var(--sand-edge)"});tx.textContent=t;return}
+    el("rect",{x:x-0.95,y:Y(y)-0.95,width:1.9,height:1.9,rx:0.25,fill:"var(--board)"});
+    const tx=el("text",{x:x,y:Y(y)+0.48,"text-anchor":"middle","font-size":1.35,"font-family":"Barlow Condensed, sans-serif","font-weight":700,fill:"var(--board-ink)"});tx.textContent=t;
+  });
+  pathEls=[0,1].map(()=>el("polyline",{fill:"none","stroke-width":0.16,"stroke-dasharray":"0.5 0.45","stroke-linecap":"round",opacity:0.75}));
+  riderEls=[];
+  for(let i=0;i<N;i++){const g=el("g",{});const c=i%2?"var(--file2)":"var(--file1)";
+    const body=el("g",{},g);
+    el("ellipse",{cx:0,cy:0,rx:1.05,ry:0.42,fill:c},body);
+    el("ellipse",{cx:1.15,cy:0,rx:0.38,ry:0.22,fill:c},body);
+    el("circle",{cx:-0.1,cy:0,r:0.3,fill:"var(--surface)",stroke:c,"stroke-width":0.08},body);
+    const tx=el("text",{x:0,y:-0.75,"text-anchor":"middle","font-size":0.95,"font-family":"Barlow Condensed, sans-serif","font-weight":700,fill:"var(--ink)"},g);tx.textContent=i+1;
+    riderEls.push({g,body});}
+}
+function render(){
+  const f=figs[fi];const tt=Math.min(t,f.dur);
+  const ps=positions(f,tt);
+  ps.forEach((p,i)=>{const r=riderEls[i];if(!r)return;
+    r.g.setAttribute("transform",`translate(${p.x.toFixed(3)} ${Y(p.y).toFixed(3)})`);
+    r.body.setAttribute("transform",`rotate(${(-p.h*180/Math.PI).toFixed(1)})`);
+    r.g.setAttribute("opacity",Math.max(0,Math.min(1,(p.y+2.5)/2.5)).toFixed(2));});
+  const wc=f.swapped?"var(--file2)":"var(--file1)", ec=f.swapped?"var(--file1)":"var(--file2)";
+  [[f.west,wc],[f.east,ec]].forEach(([tr,c],k)=>{pathEls[k].setAttribute("points",tr.pts.map(([x,y])=>x.toFixed(2)+","+Y(y).toFixed(2)).join(" "));pathEls[k].setAttribute("stroke",c)});
+  document.getElementById("barFill").style.width=(100*tt/f.dur).toFixed(1)+"%";
+  document.getElementById("nowName").textContent=(fi+1)+" · "+f.name;
+  document.getElementById("nowGait").textContent=f.gait;
+  document.querySelectorAll("tr.f").forEach(r=>r.classList.toggle("active",+r.dataset.i===fi));
+}
+
+/* ---------- animation ---------- */
+const playBtn=document.getElementById("play");
+function setPlaying(v){playing=v;playBtn.textContent=v?"❚❚ Pauze":"▶ Afspelen";if(v){last=performance.now();requestAnimationFrame(loop)}}
+function loop(now){if(!playing)return;const dt=Math.min(0.1,(now-last)/1000)*simSpeed;last=now;
+  const f=figs[fi];
+  if(pauseLeft>0){pauseLeft-=dt;if(pauseLeft<=0){fi++;t=0}}
+  else{t+=dt;if(t>=f.dur){t=f.dur;
+    if(document.getElementById("chain").checked&&fi<figs.length-1)pauseLeft=0.8;else{render();setPlaying(false);return}}}
+  render();requestAnimationFrame(loop)}
+playBtn.onclick=()=>{if(playing){setPlaying(false);return}if(t>=figs[fi].dur-0.01){if(fi===figs.length-1&&document.getElementById("chain").checked&&t>0){fi=0}t=0}setPlaying(true)};
+function goto(i,autoplay){fi=Math.max(0,Math.min(figs.length-1,i));t=0;pauseLeft=0;render();if(autoplay&&!playing)setPlaying(true)}
+document.getElementById("prev").onclick=()=>goto(fi-1,playing);
+document.getElementById("next").onclick=()=>goto(fi+1,playing);
+document.querySelectorAll(".speed button").forEach(b=>b.onclick=()=>{simSpeed=+b.dataset.s;document.querySelectorAll(".speed button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+
+/* ---------- protocol ---------- */
+const GENERAL=[["Gelijkmatigheid tempo en afstanden",2],["Synchroniteit en spiegelbeeld",2],["Choreografie en gebruik van de bak",1],["Zit en hulpen van de ruiters",2]];
+function buildTable(){
+  const tb=document.getElementById("tbody");tb.innerHTML="";
+  figs.forEach((f,i)=>{const tr=document.createElement("tr");tr.className="f";tr.dataset.i=i;
+    tr.innerHTML=`<td class="nr">${i+1}</td><td class="letters">${f.letters}</td><td class="fig"><b>${f.text}</b><span class="judge">${f.judge}</span></td><td class="coef">1</td><td class="pts"><input id="pt${i}" type="number" min="0" max="10" step="0.5" inputmode="decimal" aria-label="Punten oefening ${i+1}"></td>`;
+    tr.addEventListener("click",e=>{if(e.target.tagName!=="INPUT")goto(i,true)});tb.appendChild(tr)});
+  const sec=document.createElement("tr");sec.className="section";sec.innerHTML=`<td colspan="5">Algemene indrukken</td>`;tb.appendChild(sec);
+  GENERAL.forEach(([g,c],j)=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td class="nr">${figs.length+j+1}</td><td class="letters"></td><td class="fig"><b>${g}</b></td><td class="coef">${c}</td><td class="pts"><input id="pg${j}" type="number" min="0" max="10" step="0.5" inputmode="decimal" aria-label="${g}"></td>`;tb.appendChild(tr)});
+  tb.querySelectorAll("input").forEach(inp=>{if(points[inp.id]!=null)inp.value=points[inp.id];inp.addEventListener("input",()=>{points[inp.id]=inp.value;store.set("cp_pts",points);total()})});
+  total();
+}
+function total(){let sum=0,max=0;
+  figs.forEach((f,i)=>{max+=10;const v=parseFloat(points["pt"+i]);if(!isNaN(v))sum+=Math.min(10,Math.max(0,v))});
+  GENERAL.forEach(([g,c],j)=>{max+=10*c;const v=parseFloat(points["pg"+j]);if(!isNaN(v))sum+=c*Math.min(10,Math.max(0,v))});
+  document.getElementById("totTxt").textContent=`Totaal ${sum.toLocaleString("nl-NL")} / ${max}`;
+  document.getElementById("pct").textContent=sum?(100*sum/max).toLocaleString("nl-NL",{maximumFractionDigits:2})+" %":"–"}
+document.getElementById("resetPts").onclick=()=>{points={};store.set("cp_pts",points);buildTable()};
+
+/* ---------- riders & setup ---------- */
+function buildRiders(){const box=document.getElementById("riders");box.innerHTML="";
+  for(let i=0;i<N;i++){const d=document.createElement("label");d.className="rider";
+    d.innerHTML=`<span class="dot" style="background:${i%2?"var(--file2)":"var(--file1)"}">${i+1}</span><input id="nm${i}" placeholder="Ruiter ${i+1}" aria-label="Naam ruiter ${i+1}">`;
+    const inp=d.querySelector("input");inp.value=names[i]||"";inp.addEventListener("input",()=>{names[i]=inp.value;store.set("cp_names",names)});box.appendChild(d)}}
+function updateMeta(){
+  const r1=Math.ceil(N/2),r2=Math.floor(N/2),mins=figs.reduce((a,f)=>a+f.dur,0)/60;
+  document.getElementById("meta").innerHTML=`<span><b>${N}</b> ruiters</span><span>Rij 1: <b>${r1}</b> · Rij 2: <b>${r2}</b></span><span>Bak <b>20 × ${L} m</b></span><span>Rijtijd ca. <b>${Math.ceil(mins)} min</b></span>`;
+  let n=N%2?`Oneven aantal: rij 1 heeft één ruiter meer. Ruiter ${N} rijdt aan het eind van rij 1 zonder partner.`:`Even aantal: ${N/2} paren, elke rij rijdt het spiegelbeeld van de andere.`;
+  if(N>=8&&L===40)n+=" Met zoveel ruiters is een 20 × 60 bak ruimer: de rijen worden lang in de hoeken.";
+  if(N<=3)n+=" Met zo weinig ruiters wordt het eerder een pas de deux/trois; de figuren blijven gelijk.";
+  document.getElementById("note").textContent=n;
+  document.getElementById("nOut").textContent=N;
+  document.getElementById("bak40").setAttribute("aria-pressed",L===40);document.getElementById("bak60").setAttribute("aria-pressed",L===60);
+}
+function rebuild(keepFig){setPlaying(false);figs=build();drawArena();buildRiders();buildTable();updateMeta();
+  fi=keepFig?Math.min(fi,figs.length-1):0;t=figs[fi].dur;render()}
+document.getElementById("minus").onclick=()=>{if(N>2){N--;store.set("cp_n",N);rebuild(true)}};
+document.getElementById("plus").onclick=()=>{if(N<12){N++;store.set("cp_n",N);rebuild(true)}};
+document.getElementById("bak40").onclick=()=>{L=40;store.set("cp_l",L);rebuild(true)};
+document.getElementById("bak60").onclick=()=>{L=60;store.set("cp_l",L);rebuild(true)};
+if(!(N>=2&&N<=12))N=6; if(L!==40&&L!==60)L=40;
+rebuild(false);
+})();
+</script>
+
+</body>
+</html>
